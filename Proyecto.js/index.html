@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tareas</title>
+</head>
+<body>
+    <h1>Gestión de Tareas</h1>
+    <form id="tareaForm">
+        <input type="text" id="titulo" placeholder="Título" required>
+        <input type="text" id="descripcion" placeholder="Descripción" required>
+        <button type="submit">Crear Tarea</button>
+    </form>
+    <ul id="tareasList"></ul>
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        // Obtener tareas
+        async function obtenerTareas() {
+            const response = await fetch(`${API_URL}/tareas`);
+            const tareas = await response.json();
+            const tareasList = document.getElementById('tareasList');
+            tareasList.innerHTML = '';
+            tareas.forEach(tarea => {
+                const li = document.createElement('li');
+                li.textContent = `${tarea.titulo}: ${tarea.descripcion}`;
+                const eliminarBtn = document.createElement('button');
+                eliminarBtn.textContent = 'Eliminar';
+                eliminarBtn.onclick = async () => {
+                    await fetch(`${API_URL}/tareas/${tarea.id}`, { method: 'DELETE' });
+                    obtenerTareas();
+                };
+                li.appendChild(eliminarBtn);
+                tareasList.appendChild(li);
+            });
+        }
+
+        // Crear tarea
+        document.getElementById('tareaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('titulo').value;
+            const descripcion = document.getElementById('descripcion').value;
+            await fetch(`${API_URL}/tareas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descripcion })
+            });
+            obtenerTareas();
+        });
+
+        obtenerTareas();
+    </script>
+</body>
+</html>
